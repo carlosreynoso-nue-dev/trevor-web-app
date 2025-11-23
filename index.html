@@ -3,37 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUE Trevor HMI</title>
+    <title>NUE Trevor Pro</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 400px; background: #1e1e1e; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 420px; background: #1e1e1e; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
         
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h1 { color: #00d2ff; margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
-        .badge { background: #333; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .badge.ok { background: #00d2ff; color: black; }
-        
-        /* Dashboard Grid */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .card { background: #2c2c2c; padding: 15px; border-radius: 10px; text-align: center; }
-        .label { font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 5px; }
-        .value { font-size: 1.4rem; font-weight: bold; color: #fff; }
-        .unit { font-size: 0.9rem; color: #888; }
-        
-        /* Full Width Card */
-        .card.full { grid-column: span 2; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-        .card.full .value { font-size: 1.1rem; }
+        h1 { color: #00d2ff; margin: 0; font-size: 1.4rem; letter-spacing: 1px; text-align: center; }
+        .subtitle { color: #666; font-size: 0.8rem; text-align: center; margin-bottom: 20px; }
 
-        /* Forms & Buttons */
-        .hidden { display: none; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; margin-top: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-        .btn-primary { background-color: #00d2ff; color: #000; }
-        .btn-secondary { background-color: #444; color: #fff; margin-top: 10px; }
+        /* Grid Layouts */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         
-        /* Connection Screen */
-        #connectScreen { text-align: center; padding: 40px 0; }
+        /* Cards */
+        .card { background: #2c2c2c; padding: 12px; border-radius: 8px; text-align: center; }
+        .label { font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .value { font-size: 1.2rem; font-weight: bold; color: #fff; }
+        .unit { font-size: 0.8rem; color: #888; font-weight: normal; }
+        
+        /* Status Indicators */
+        .fet-box { display: flex; justify-content: space-between; background: #252525; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+        .fet { font-size: 0.8rem; font-weight: bold; color: #555; padding: 4px 8px; border-radius: 4px; background: #1a1a1a; width: 40%; text-align: center; }
+        .fet.on { background: #00d2ff; color: #000; }
+        
+        /* Cells */
+        .cells-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: #252525; padding: 10px; border-radius: 8px; }
+        .cell-box { background: #333; padding: 5px; border-radius: 4px; text-align: center; font-size: 0.8rem; }
+        .cell-box.low { color: #ff4444; border: 1px solid #ff4444; }
+        
+        /* GPS */
+        .gps-link { color: #00d2ff; text-decoration: none; font-size: 0.9rem; display: block; margin-top: 5px; }
+        
+        /* Buttons */
+        .hidden { display: none; }
+        button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .btn-primary { background-color: #00d2ff; color: #000; }
+        .btn-secondary { background-color: #444; color: #fff; }
+        
+        /* Config Form inputs */
+        input, select { width: 100%; padding: 10px; margin: 5px 0; background: #181818; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -42,205 +50,229 @@
     
     <div id="connectScreen">
         <h1>NUE TREVOR</h1>
-        <p style="color:#888; margin-bottom: 30px;">Asset Tracker HMI</p>
-        <button id="btnConnect" class="btn-primary">Connect via Bluetooth</button>
-        <p id="statusMsg" style="margin-top:20px; font-size:0.9em; color:#666;">Ready to connect.</p>
+        <div class="subtitle">Pro Diagnostic Tool</div>
+        <button id="btnConnect" class="btn-primary">SCAN & CONNECT</button>
+        <p id="statusMsg" style="text-align:center; color:#666; margin-top:20px; font-size:0.8rem;">Ready</p>
     </div>
 
     <div id="dashboardScreen" class="hidden">
-        <div class="header">
-            <h1>NUE</h1>
-            <span id="statusBadge" class="badge">LINKED</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h1>DASHBOARD</h1>
+            <div id="sysStatus" style="font-size:0.7rem; color:#888;">Connecting...</div>
         </div>
 
-        <div class="grid">
+        <div class="grid-2">
             <div class="card">
-                <span class="label">VOLTAGE</span>
+                <span class="label">Total Voltage</span>
                 <span id="val_v" class="value">--</span> <span class="unit">V</span>
             </div>
             <div class="card">
-                <span class="label">BATTERY</span>
-                <span id="val_soc" class="value">--</span> <span class="unit">%</span>
+                <span class="label">Current</span>
+                <span id="val_i" class="value">--</span> <span class="unit">A</span>
             </div>
         </div>
 
-        <div class="card full">
-            <div>
-                <span class="label">GPS LOCATION</span>
-                <div id="val_gps" class="value" style="font-size: 0.9rem; margin-top:4px;">Searching...</div>
+        <div class="grid-3">
+            <div class="card">
+                <span class="label">SOC</span>
+                <span id="val_soc" class="value">--</span><span class="unit">%</span>
             </div>
-            <div id="icon_gps">📡</div>
+            <div class="card">
+                <span class="label">Temp</span>
+                <span id="val_tmp" class="value">--</span><span class="unit">°C</span>
+            </div>
+            <div class="card">
+                <span class="label">Cycles</span>
+                <span id="val_cyc" class="value">--</span>
+            </div>
         </div>
 
-        <div class="card full">
-            <div>
-                <span class="label">NETWORK / MAC</span>
-                <div id="val_net" class="value" style="font-size: 0.9rem; margin-top:4px;">Init...</div>
-            </div>
+        <div class="fet-box">
+            <div id="fet_c" class="fet">CHARGE</div>
+            <div id="fet_d" class="fet">DISCHARGE</div>
         </div>
 
-        <button id="btnSettings" class="btn-secondary">⚙️ Configure Settings</button>
+        <div class="card" style="text-align:left; margin-bottom:10px;">
+            <span class="label">GPS LOCATION</span>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="val_gps" style="font-weight:bold;">Searching...</span>
+                <span id="gps_icon">📡</span>
+            </div>
+            <a id="map_link" href="#" target="_blank" class="hidden gps-link">Open in Maps ↗</a>
+        </div>
+
+        <span class="label" style="margin-left:5px; margin-bottom:5px;">CELL VOLTAGES</span>
+        <div id="cellGrid" class="cells-container">
+            <div class="cell-box">--</div>
+        </div>
+
+        <button id="btnSettings" class="btn-secondary">⚙️ Device Config</button>
     </div>
 
     <div id="configScreen" class="hidden">
-        <h3>CONFIGURATION</h3>
+        <h1>SETTINGS</h1>
+        <div class="subtitle">Device Configuration</div>
         
-        <label>Target Battery (MAC)</label>
-        <select id="bmsList">
-            <option value="">Loading scan...</option>
-        </select>
+        <label class="label">Target Battery (MAC)</label>
+        <select id="bmsList"><option>Scanning...</option></select>
 
-        <label>Cellular APN</label>
-        <input type="text" id="apn" placeholder="teal">
+        <label class="label">APN</label>
+        <input type="text" id="apn">
 
-        <label>MQTT Token</label>
-        <input type="password" id="token" placeholder="Token">
+        <label class="label">MQTT Token</label>
+        <input type="password" id="token">
 
         <button id="btnSave" class="btn-primary">SAVE & REBOOT</button>
-        <button id="btnBack" class="btn-secondary">Cancel</button>
+        <button id="btnBack" class="btn-secondary">Back to Dashboard</button>
     </div>
 
 </div>
 
 <script>
-    // UUIDs must match main.cpp
+    // --- CONSTANTS ---
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHAR_SETTINGS = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
     const CHAR_SCAN = "1c95d5e3-d8f7-413a-bf3d-7a2e5d7be87e";
     const CHAR_CMD = "748db82d-2276-440c-a25c-2562945b4270";
-    const CHAR_LIVE = "d05f38b4-0469-4d0c-9bc4-245745c05f53"; // Live Telemetry
+    const CHAR_LIVE = "d05f38b4-0469-4d0c-9bc4-245745c05f53";
 
     let device, server, service;
     let settingsChar, cmdChar;
 
-    // UI References
-    const screens = {
-        connect: document.getElementById('connectScreen'),
-        dashboard: document.getElementById('dashboardScreen'),
-        config: document.getElementById('configScreen')
+    // --- NAVIGATION ---
+    const showScreen = (id) => {
+        ['connectScreen','dashboardScreen','configScreen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
     };
 
-    function showScreen(name) {
-        Object.values(screens).forEach(s => s.classList.add('hidden'));
-        screens[name].classList.remove('hidden');
-    }
-
-    // --- CONNECT LOGIC ---
+    // --- BLUETOOTH CONNECT ---
     document.getElementById('btnConnect').addEventListener('click', async () => {
         try {
-            document.getElementById('statusMsg').innerText = "Searching...";
-            
+            document.getElementById('statusMsg').innerText = "Requesting Bluetooth...";
             device = await navigator.bluetooth.requestDevice({
                 filters: [{ name: 'NUE_TREVOR_SETUP' }],
                 optionalServices: [SERVICE_UUID]
             });
-
-            device.addEventListener('gattserverdisconnected', onDisconnected);
+            device.addEventListener('gattserverdisconnected', () => showScreen('connectScreen'));
+            
+            document.getElementById('statusMsg').innerText = "Connecting...";
             server = await device.gatt.connect();
             service = await server.getPrimaryService(SERVICE_UUID);
 
-            // 1. Setup Live Data Listener
+            // Setup Telemetry
             const liveChar = await service.getCharacteristic(CHAR_LIVE);
             await liveChar.startNotifications();
-            liveChar.addEventListener('characteristicvaluechanged', handleLiveData);
+            liveChar.addEventListener('characteristicvaluechanged', updateDashboard);
 
-            // 2. Prepare Config Chars
+            // Setup Config
             settingsChar = await service.getCharacteristic(CHAR_SETTINGS);
             cmdChar = await service.getCharacteristic(CHAR_CMD);
 
-            // 3. Go to Dashboard
-            showScreen('dashboard');
-
-        } catch (error) {
-            console.error(error);
-            document.getElementById('statusMsg').innerText = "Error: " + error.message;
+            showScreen('dashboardScreen');
+        } catch (e) {
+            document.getElementById('statusMsg').innerText = "Error: " + e.message;
         }
     });
 
-    // --- LIVE DATA HANDLER ---
-    function handleLiveData(event) {
-        const value = event.target.value;
-        const jsonStr = new TextDecoder().decode(value);
-        
-        // Clean null bytes just in case
-        const cleanStr = jsonStr.replace(/\0/g, '').trim();
-        
+    // --- DASHBOARD UPDATE ---
+    function updateDashboard(event) {
+        const str = new TextDecoder().decode(event.target.value).replace(/\0/g, '').trim();
         try {
-            const data = JSON.parse(cleanStr);
+            const d = JSON.parse(str);
             
-            // Update Dashboard UI
-            document.getElementById('val_v').innerText = data.v ? data.v.toFixed(1) : "--";
-            document.getElementById('val_soc').innerText = data.soc || "--";
-            document.getElementById('val_gps').innerText = data.gps || "Searching...";
-            document.getElementById('val_net').innerText = (data.net || "Init") + " [" + (data.mac || "") + "]";
+            // Header Status
+            document.getElementById('sysStatus').innerText = d.con ? "CONNECTED" : "SEARCHING BMS...";
             
-            if(data.alarm) {
-                document.getElementById('statusBadge').innerText = "⚠️ ALARM";
-                document.getElementById('statusBadge').style.background = "red";
-            } else {
-                document.getElementById('statusBadge').innerText = "ONLINE";
-                document.getElementById('statusBadge').style.background = "#00d2ff";
+            // Basic Metrics
+            document.getElementById('val_v').innerText = d.v ? d.v.toFixed(1) : "--";
+            document.getElementById('val_i').innerText = d.i ? d.i.toFixed(1) : "--";
+            document.getElementById('val_soc').innerText = d.soc || "--";
+            document.getElementById('val_cyc').innerText = d.cyc || "--";
+            document.getElementById('val_cap').innerText = d.cap ? d.cap.toFixed(1) : "--";
+
+            // Temps
+            if(d.tmp) {
+                let temps = d.tmp.split(',').filter(t => t).map(Number);
+                let maxT = Math.max(...temps);
+                document.getElementById('val_tmp').innerText = maxT;
             }
 
-        } catch(e) { console.log("JSON Error:", e); }
+            // FETs
+            const setFet = (id, state) => {
+                const el = document.getElementById(id);
+                if(state) el.classList.add('on'); else el.classList.remove('on');
+            };
+            setFet('fet_c', d.fet_c);
+            setFet('fet_d', d.fet_d);
+
+            // GPS
+            if(d.lat && d.lon && d.lat != 0) {
+                document.getElementById('val_gps').innerText = d.lat.toFixed(4) + ", " + d.lon.toFixed(4);
+                const link = document.getElementById('map_link');
+                link.href = `https://maps.google.com/?q=${d.lat},${d.lon}`;
+                link.classList.remove('hidden');
+            } else {
+                document.getElementById('val_gps').innerText = "Acquiring...";
+                document.getElementById('map_link').classList.add('hidden');
+            }
+
+            // Cells Grid
+            if(d.cel) {
+                const cells = d.cel.split(',').filter(c => c);
+                const container = document.getElementById('cellGrid');
+                container.innerHTML = "";
+                cells.forEach((v, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'cell-box';
+                    div.innerText = parseFloat(v).toFixed(3);
+                    container.appendChild(div);
+                });
+            }
+
+        } catch(e) { console.log("Parse error", e); }
     }
 
-    // --- SETTINGS LOGIC ---
+    // --- CONFIG LOGIC ---
     document.getElementById('btnSettings').addEventListener('click', async () => {
-        showScreen('config');
+        showScreen('configScreen');
         
         // Load Scan List
         const scanChar = await service.getCharacteristic(CHAR_SCAN);
         const scanVal = await scanChar.readValue();
         const scanJson = new TextDecoder().decode(scanVal).replace(/\0/g, '').trim();
-        populateBmsList(JSON.parse(scanJson));
+        const devices = JSON.parse(scanJson);
+        
+        const sel = document.getElementById('bmsList');
+        sel.innerHTML = "<option value=''>Select Battery...</option>";
+        devices.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.mac; opt.text = `${d.name} (${d.rssi})`;
+            sel.add(opt);
+        });
 
-        // Load Current Settings
+        // Load Existing
         const setVal = await settingsChar.readValue();
         const setJson = JSON.parse(new TextDecoder().decode(setVal).replace(/\0/g, '').trim());
-        
         document.getElementById('apn').value = setJson.apn || "";
         document.getElementById('token').value = setJson.token || "";
         document.getElementById('bmsList').value = setJson.mac || "";
     });
 
-    document.getElementById('btnBack').addEventListener('click', () => {
-        showScreen('dashboard');
-    });
-
-    function populateBmsList(devices) {
-        const select = document.getElementById('bmsList');
-        select.innerHTML = "<option value=''>-- Select Battery --</option>";
-        devices.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d.mac;
-            opt.text = `${d.name} (${d.rssi} dBm)`;
-            select.add(opt);
-        });
-    }
+    document.getElementById('btnBack').addEventListener('click', () => showScreen('dashboardScreen'));
 
     document.getElementById('btnSave').addEventListener('click', async () => {
-        const newSettings = {
+        const data = {
             apn: document.getElementById('apn').value,
             token: document.getElementById('token').value,
             mac: document.getElementById('bmsList').value
         };
-
         try {
-            const encoder = new TextEncoder();
-            await settingsChar.writeValue(encoder.encode(JSON.stringify(newSettings)));
-            await cmdChar.writeValue(encoder.encode("REBOOT"));
-            alert("Saved! Trevor is rebooting.");
-            window.location.reload();
-        } catch(e) {
-            alert("Error saving: " + e.message);
-        }
+            await settingsChar.writeValue(new TextEncoder().encode(JSON.stringify(data)));
+            await cmdChar.writeValue(new TextEncoder().encode("REBOOT"));
+            alert("Saved! Rebooting...");
+            location.reload();
+        } catch(e) { alert("Error: " + e.message); }
     });
-
-    function onDisconnected() {
-        showScreen('connect');
-        document.getElementById('statusMsg').innerText = "Disconnected from Trevor.";
-    }
 </script>
 
 </body>
