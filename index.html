@@ -11,19 +11,22 @@
         
         /* Grid Layout */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-top: 5px; }
+        
         .card { background: #2c2c2c; padding: 15px; border-radius: 8px; text-align: center; }
         
         /* Typography */
-        .label { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
-        .value { font-size: 1.2rem; font-weight: bold; color: #fff; }
+        .label { display: block; font-size: 0.7rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .value { font-size: 1.3rem; font-weight: bold; color: #fff; }
+        .value-sm { font-size: 1.0rem; font-weight: bold; color: #fff; }
         .unit { font-size: 0.8rem; color: #888; font-weight: normal; }
+        
+        /* Specific Colors */
+        .good { color: #00d2ff; }
+        .bad { color: #ff4444; }
         
         /* GPS Link */
         #mapLink { color: #00d2ff; text-decoration: none; font-size: 0.85rem; font-weight: bold; display: none; margin-top: 8px; border: 1px solid #00d2ff; padding: 5px; border-radius: 4px; }
-        
-        /* Cells Grid */
-        .cell-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 5px; }
-        .cell { background: #333; padding: 4px; border-radius: 4px; font-size: 0.75rem; text-align: center; }
         
         /* Buttons */
         .hidden { display: none; }
@@ -57,30 +60,47 @@
                 <span class="label">Current</span>
                 <span id="i" class="value">--</span> <span class="unit">A</span>
             </div>
-            <div class="card">
-                <span class="label">SOC</span>
-                <span id="soc" class="value">--</span><span class="unit">%</span>
-            </div>
-            <div class="card">
-                <span class="label">Cycles</span>
-                <span id="cyc" class="value">--</span>
-            </div>
+        </div>
+        
+        <div class="card" style="margin-bottom:10px;">
+             <span class="label">STATE OF CHARGE</span>
+             <span id="soc" class="value" style="font-size: 2rem;">--</span> <span class="unit">%</span>
         </div>
         
         <div class="card">
+            <span class="label" style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">BATTERY HEALTH</span>
+            <div class="grid-4">
+                <div>
+                    <span class="label">LOW</span>
+                    <div id="c_min" class="value-sm">--</div>
+                </div>
+                <div>
+                    <span class="label">HIGH</span>
+                    <div id="c_max" class="value-sm">--</div>
+                </div>
+                <div>
+                    <span class="label">AVG</span>
+                    <div id="c_avg" class="value-sm">--</div>
+                </div>
+                <div>
+                    <span class="label">CYCLES</span>
+                    <div id="cyc" class="value-sm" style="color:#ffcc00">--</div>
+                </div>
+            </div>
+            <div style="margin-top:10px; font-size:0.8rem; color:#888;">
+                Delta: <span id="c_delta" style="color:#fff; font-weight:bold;">--</span> V
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:10px;">
             <span class="label">GPS LOCATION</span>
             <div id="gps" style="font-weight:bold; margin-bottom:2px;">Searching...</div>
             <div id="loc" style="font-size:0.8rem; color:#888;"></div>
             <a id="mapLink" href="#" target="_blank">OPEN MAP ↗</a>
         </div>
 
-        <div class="card">
-            <span class="label">CELL VOLTAGES</span>
-            <div id="cells" class="cell-grid">Loading...</div>
-        </div>
-
-        <div class="card">
-            <span class="label">ALARMS</span>
+        <div class="card" style="margin-top:10px;">
+            <span class="label">SYSTEM STATUS</span>
             <div id="alarms"><span class="healthy">System Healthy</span></div>
         </div>
 
@@ -128,16 +148,14 @@
             document.getElementById('i').innerText = d.i ? d.i.toFixed(1) : "--";
             document.getElementById('soc').innerText = d.soc || "--";
             
-            // GPS Logic
             const gpsStatus = d.gps ? "FIXED" : "SEARCHING";
             document.getElementById('gps').innerText = "GPS: " + gpsStatus;
             
             if(d.lat && d.lon && d.lat !== 0) {
                 document.getElementById('loc').innerText = d.lat.toFixed(4) + ", " + d.lon.toFixed(4);
                 const link = document.getElementById('mapLink');
-                // Create Google Maps Link
-                link.href = `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lon}`;
-                link.style.display = "inline-block"; // Make visible
+                link.href = `https://maps.google.com/?q=${d.lat},${d.lon}`;
+                link.style.display = "inline-block"; 
             }
         } catch(err) { console.error(err); }
     }
@@ -148,14 +166,28 @@
             const d = JSON.parse(clean);
             document.getElementById('cyc').innerText = d.cyc || "--";
             
-            // Update Cells
+            // CALCULATE CELL STATS
             if(d.cel) {
-                const cells = d.cel.split(',').filter(x => x);
-                const div = document.getElementById('cells');
-                div.innerHTML = "";
-                cells.forEach((v, i) => {
-                    div.innerHTML += `<div class="cell">${parseFloat(v).toFixed(2)}</div>`;
-                });
+                // Convert string "3.2,3.1,..." to array of numbers
+                const cells = d.cel.split(',').filter(x => x).map(Number);
+                
+                if(cells.length > 0) {
+                    const min = Math.min(...cells);
+                    const max = Math.max(...cells);
+                    const avg = cells.reduce((a,b) => a+b, 0) / cells.length;
+                    const delta = max - min;
+
+                    document.getElementById('c_min').innerText = min.toFixed(3);
+                    document.getElementById('c_max').innerText = max.toFixed(3);
+                    document.getElementById('c_avg').innerText = avg.toFixed(3);
+                    
+                    const deltaEl = document.getElementById('c_delta');
+                    deltaEl.innerText = delta.toFixed(3);
+                    
+                    // Highlight bad delta (> 100mV)
+                    if(delta > 0.100) deltaEl.style.color = "#ff4444";
+                    else deltaEl.style.color = "#00d2ff";
+                }
             }
 
             // Update Alarms
@@ -167,7 +199,7 @@
                 if(d.al.sc) active.push("Short Circuit");
                 if(d.al.cot) active.push("Charge Temp High");
                 if(d.al.cut) active.push("Charge Temp Low");
-                // Add other flags if needed
+                if(d.al.doc) active.push("Discharge Overcurrent");
                 
                 if(active.length > 0) {
                     alDiv.innerHTML = active.map(a => `<div class="alarm">${a}</div>`).join("");
