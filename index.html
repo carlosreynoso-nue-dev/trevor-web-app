@@ -9,6 +9,13 @@
         .container { width: 100%; max-width: 400px; background: #1e1e1e; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         h1 { color: #00d2ff; margin: 0 0 15px 0; text-align: center; letter-spacing: 1px; }
         
+        /* Status Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .badge-state { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color:black; background: #888; }
+        .st-chg { background: #00ff00; } 
+        .st-dsg { background: #ffcc00; } 
+        .st-stb { background: #888; color: white; }
+
         /* Grid Layout */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-top: 5px; }
@@ -21,19 +28,23 @@
         .value-sm { font-size: 1.0rem; font-weight: bold; color: #fff; }
         .unit { font-size: 0.8rem; color: #888; font-weight: normal; }
         
-        /* Specific Colors */
-        .good { color: #00d2ff; }
-        .bad { color: #ff4444; }
-        
         /* GPS Link */
         #mapLink { color: #00d2ff; text-decoration: none; font-size: 0.85rem; font-weight: bold; display: none; margin-top: 8px; border: 1px solid #00d2ff; padding: 5px; border-radius: 4px; }
+        
+        /* Cells Grid */
+        .cell-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 5px; }
+        .cell { background: #333; padding: 4px; border-radius: 4px; font-size: 0.75rem; text-align: center; }
         
         /* Buttons */
         .hidden { display: none; }
         button { width: 100%; background: #00d2ff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1rem; margin-top: 15px; cursor: pointer; color: #000; }
+        button.secondary { background: #444; color: white; margin-top: 10px; }
         button:active { opacity: 0.8; }
         
-        .alarm { color: #ff4444; font-weight: bold; background: rgba(255,0,0,0.1); padding: 5px; border-radius: 4px; margin-top: 5px;}
+        /* Config Inputs */
+        input, select { width: 100%; padding: 10px; margin: 5px 0; background: #181818; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+
+        .alarm { color: #ff4444; font-weight: bold; background: rgba(255,0,0,0.1); padding: 5px; border-radius: 4px; margin-top: 5px; font-size: 0.85rem;}
         .healthy { color: #00d2ff; font-size: 0.9rem; }
     </style>
 </head>
@@ -49,7 +60,10 @@
     </div>
 
     <div id="dashboardScreen" class="hidden">
-        <h1>DASHBOARD</h1>
+        <div class="header">
+            <span style="font-weight:bold; color:#00d2ff;">DASHBOARD</span>
+            <span id="sysState" class="badge-state st-stb">--</span>
+        </div>
         
         <div class="grid">
             <div class="card">
@@ -101,76 +115,137 @@
 
         <div class="card" style="margin-top:10px;">
             <span class="label">SYSTEM STATUS</span>
-            <div id="alarms"><span class="healthy">System Healthy</span></div>
+            <div id="alarms"><span class="healthy">Waiting for Update...</span></div>
         </div>
 
+        <button id="btnSettings" class="secondary">⚙️ SETTINGS</button>
         <button onclick="location.reload()" style="background:#333; color:#fff;">DISCONNECT</button>
+    </div>
+
+    <div id="configScreen" class="hidden">
+        <h1>SETTINGS</h1>
+        <label class="label" style="text-align:left">Target Battery (MAC)</label>
+        <select id="bmsList"><option>Scanning...</option></select>
+
+        <label class="label" style="text-align:left">MQTT Token</label>
+        <input type="password" id="token">
+
+        <label class="label" style="text-align:left">APN</label>
+        <input type="text" id="apn">
+
+        <button id="btnSave">SAVE & REBOOT</button>
+        <button id="btnBack" class="secondary">Back to Dashboard</button>
     </div>
 </div>
 
 <script>
     const SVC_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+    const CHAR_SETTINGS = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    const CHAR_SCAN = "1c95d5e3-d8f7-413a-bf3d-7a2e5d7be87e";
+    const CHAR_CMD = "748db82d-2276-440c-a25c-2562945b4270";
     const CHAR_FAST = "d05f38b4-0469-4d0c-9bc4-245745c05f53";
     const CHAR_DETAIL = "e23e78a0-4e6c-4e27-b2f3-4e2342349122";
 
+    let device, server, service, settingsChar, cmdChar;
+
+    // --- UI SWITCHER ---
+    function showScreen(id) {
+        ['connectScreen', 'dashboardScreen', 'configScreen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    // --- CONNECT ---
     document.getElementById('btnConnect').addEventListener('click', async () => {
         try {
             document.getElementById('statusMsg').innerText = "Scanning...";
-            const device = await navigator.bluetooth.requestDevice({
+            device = await navigator.bluetooth.requestDevice({
                 filters: [{ name: 'NUE_TREVOR_SETUP' }],
                 optionalServices: [SVC_UUID]
             });
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService(SVC_UUID);
+            device.addEventListener('gattserverdisconnected', () => location.reload());
+            
+            server = await device.gatt.connect();
+            service = await server.getPrimaryService(SVC_UUID);
 
-            // Subscribe to Fast Data (1s)
+            // Subscribe Telemetry
             const fastChar = await service.getCharacteristic(CHAR_FAST);
             await fastChar.startNotifications();
             fastChar.addEventListener('characteristicvaluechanged', handleFast);
 
-            // Subscribe to Detail Data (4s)
             const detailChar = await service.getCharacteristic(CHAR_DETAIL);
             await detailChar.startNotifications();
             detailChar.addEventListener('characteristicvaluechanged', handleDetail);
 
-            document.getElementById('connectScreen').classList.add('hidden');
-            document.getElementById('dashboardScreen').classList.remove('hidden');
+            // Setup Config Chars
+            settingsChar = await service.getCharacteristic(CHAR_SETTINGS);
+            cmdChar = await service.getCharacteristic(CHAR_CMD);
+
+            showScreen('dashboardScreen');
         } catch(e) {
             document.getElementById('statusMsg').innerText = "Error: " + e.message;
         }
     });
 
+    // --- FAST TELEMETRY (1s) ---
     function handleFast(e) {
         const clean = new TextDecoder().decode(e.target.value).replace(/\0/g, '').trim();
         try {
             const d = JSON.parse(clean);
-            document.getElementById('v').innerText = d.v ? d.v.toFixed(1) : "--";
-            document.getElementById('i').innerText = d.i ? d.i.toFixed(1) : "--";
-            document.getElementById('soc').innerText = d.soc || "--";
+            if(d.v !== undefined) document.getElementById('v').innerText = d.v.toFixed(1);
+            if(d.i !== undefined) document.getElementById('i').innerText = d.i.toFixed(1);
+            if(d.soc !== undefined) document.getElementById('soc').innerText = d.soc;
             
+            // State Badge
+            const stEl = document.getElementById('sysState');
+            if (d.st) {
+                if (d.st === "CHG") { stEl.innerText = "CHARGING ⚡"; stEl.className = "badge-state st-chg"; }
+                else if (d.st === "DSG") { stEl.innerText = "DISCHARGING 🔋"; stEl.className = "badge-state st-dsg"; }
+                else { stEl.innerText = "STANDBY 💤"; stEl.className = "badge-state st-stb"; }
+            }
+
+            // GPS
             const gpsStatus = d.gps ? "FIXED" : "SEARCHING";
             document.getElementById('gps').innerText = "GPS: " + gpsStatus;
             
             if(d.lat && d.lon && d.lat !== 0) {
                 document.getElementById('loc').innerText = d.lat.toFixed(4) + ", " + d.lon.toFixed(4);
                 const link = document.getElementById('mapLink');
-                link.href = `https://maps.google.com/?q=${d.lat},${d.lon}`;
+                link.href = `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lon}`;
                 link.style.display = "inline-block"; 
             }
         } catch(err) { console.error(err); }
     }
 
+    // --- DETAIL TELEMETRY (4s - Split Frames) ---
     function handleDetail(e) {
         const clean = new TextDecoder().decode(e.target.value).replace(/\0/g, '').trim();
         try {
             const d = JSON.parse(clean);
-            document.getElementById('cyc').innerText = d.cyc || "--";
+
+            // Frame 1: Cycles & Alarms
+            if(d.cyc !== undefined) document.getElementById('cyc').innerText = d.cyc;
             
-            // CALCULATE CELL STATS
-            if(d.cel) {
-                // Convert string "3.2,3.1,..." to array of numbers
-                const cells = d.cel.split(',').filter(x => x).map(Number);
+            if(d.al) {
+                const alDiv = document.getElementById('alarms');
+                let active = [];
+                if(d.al.ov) active.push("Cell Overvolt");
+                if(d.al.uv) active.push("Cell Undervolt");
+                if(d.al.sc) active.push("Short Circuit");
+                if(d.al.doc) active.push("Discharge Overcurrent");
+                if(d.al.cot) active.push("Charge Temp High");
+                if(d.al.cut) active.push("Charge Temp Low");
+                if(d.al.lock) active.push("Software Locked");
                 
+                if(active.length > 0) {
+                    alDiv.innerHTML = active.map(a => `<div class="alarm">${a}</div>`).join("");
+                } else {
+                    alDiv.innerHTML = "<span class='healthy'>System Healthy</span>";
+                }
+            }
+
+            // Frame 2: Cells
+            if(d.cel) {
+                const cells = d.cel.split(',').filter(x => x).map(Number);
                 if(cells.length > 0) {
                     const min = Math.min(...cells);
                     const max = Math.max(...cells);
@@ -183,32 +258,55 @@
                     
                     const deltaEl = document.getElementById('c_delta');
                     deltaEl.innerText = delta.toFixed(3);
-                    
-                    // Highlight bad delta (> 100mV)
-                    if(delta > 0.100) deltaEl.style.color = "#ff4444";
-                    else deltaEl.style.color = "#00d2ff";
-                }
-            }
-
-            // Update Alarms
-            if(d.al) {
-                const alDiv = document.getElementById('alarms');
-                let active = [];
-                if(d.al.ov) active.push("Cell Overvolt");
-                if(d.al.uv) active.push("Cell Undervolt");
-                if(d.al.sc) active.push("Short Circuit");
-                if(d.al.cot) active.push("Charge Temp High");
-                if(d.al.cut) active.push("Charge Temp Low");
-                if(d.al.doc) active.push("Discharge Overcurrent");
-                
-                if(active.length > 0) {
-                    alDiv.innerHTML = active.map(a => `<div class="alarm">${a}</div>`).join("");
-                } else {
-                    alDiv.innerHTML = "<span class='healthy'>System Healthy</span>";
+                    if(delta > 0.100) deltaEl.style.color = "#ff4444"; else deltaEl.style.color = "#00d2ff";
                 }
             }
         } catch(err) { console.error(err); }
     }
+
+    // --- SETTINGS ---
+    document.getElementById('btnSettings').addEventListener('click', async () => {
+        showScreen('configScreen');
+        // Request new scan
+        await cmdChar.writeValue(new TextEncoder().encode("SCAN"));
+        
+        setTimeout(async () => {
+            const scanChar = await service.getCharacteristic(CHAR_SCAN);
+            const scanVal = await scanChar.readValue();
+            const clean = new TextDecoder().decode(scanVal).replace(/\0/g, '').trim();
+            const devices = JSON.parse(clean);
+            const sel = document.getElementById('bmsList');
+            sel.innerHTML = "<option value=''>Select Battery...</option>";
+            devices.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.mac; opt.text = `${d.name} (${d.rssi})`;
+                sel.add(opt);
+            });
+            
+            // Load existing
+            const setVal = await settingsChar.readValue();
+            const setJson = JSON.parse(new TextDecoder().decode(setVal).replace(/\0/g, '').trim());
+            document.getElementById('apn').value = setJson.apn || "";
+            document.getElementById('token').value = setJson.token || "";
+            document.getElementById('bmsList').value = setJson.mac || "";
+
+        }, 2500);
+    });
+
+    document.getElementById('btnBack').addEventListener('click', () => showScreen('dashboardScreen'));
+
+    document.getElementById('btnSave').addEventListener('click', async () => {
+        const data = {
+            apn: document.getElementById('apn').value,
+            token: document.getElementById('token').value,
+            mac: document.getElementById('bmsList').value
+        };
+        try {
+            await settingsChar.writeValue(new TextEncoder().encode(JSON.stringify(data)));
+            await cmdChar.writeValue(new TextEncoder().encode("REBOOT"));
+            alert("Saved! Rebooting...");
+        } catch(e) { alert("Error: " + e.message); }
+    });
 </script>
 </body>
 </html>
