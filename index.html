@@ -9,45 +9,38 @@
         .container { width: 100%; max-width: 400px; background: #1e1e1e; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         h1 { color: #00d2ff; margin: 0 0 15px 0; text-align: center; letter-spacing: 1px; }
         
-        /* Status Header */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .badge-state { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color:black; background: #888; text-align: center;}
         .st-chg { background: #00ff00; } 
         .st-dsg { background: #ffcc00; } 
         .st-stb { background: #888; color: white; }
 
-        /* Grid Layout */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-top: 5px; }
         
         .card { background: #2c2c2c; padding: 15px; border-radius: 8px; text-align: center; }
         
-        /* Typography */
         .label { display: block; font-size: 0.7rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
         .value { font-size: 1.3rem; font-weight: bold; color: #fff; }
         .value-sm { font-size: 1.0rem; font-weight: bold; color: #fff; }
         .unit { font-size: 0.8rem; color: #888; font-weight: normal; }
         
-        /* GPS Link */
-        #mapLink { color: #00d2ff; text-decoration: none; font-size: 0.85rem; font-weight: bold; display: none; margin-top: 8px; border: 1px solid #00d2ff; padding: 5px; border-radius: 4px; }
-        
-        /* Buttons */
         .hidden { display: none; }
         button { width: 100%; background: #00d2ff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1rem; margin-top: 15px; cursor: pointer; color: #000; }
         button.secondary { background: #444; color: white; margin-top: 10px; }
         button:active { opacity: 0.8; }
+        button:disabled { background: #555; color: #888; cursor: not-allowed; }
         
-        /* Config Inputs */
         input, select { width: 100%; padding: 10px; margin: 5px 0 15px 0; background: #181818; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
 
         .alarm { color: #ff4444; font-weight: bold; background: rgba(255,0,0,0.1); padding: 5px; border-radius: 4px; margin-top: 5px; font-size: 0.85rem;}
         .healthy { color: #00d2ff; font-size: 0.9rem; }
+        .section-box { background:#333; padding:15px; border-radius:8px; margin-bottom:15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
     <div id="connectScreen">
         <h1>NUE TREVOR</h1>
         <p style="text-align:center; color:#888;">Edge Provisioning Tool</p>
@@ -66,7 +59,6 @@
                 <span class="label" style="margin:0;">REMOTE LINK (LTE)</span>
                 <div id="lte_rssi" style="font-size:0.8rem; color:#888; font-weight:bold;">--</div>
             </div>
-            
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
                 <div style="text-align:left;">
                     <span class="label">NETWORK</span>
@@ -80,16 +72,11 @@
         </div>
 
         <div class="grid">
-            <div class="card">
-                <span class="label">Voltage</span>
-                <span id="v" class="value">--</span> <span class="unit">V</span>
-            </div>
+            <div class="card"><span class="label">Voltage</span><span id="v" class="value">--</span> <span class="unit">V</span></div>
             <div class="card">
                 <span class="label">EST. RUN TIME</span>
                 <div id="runtime" class="value" style="color:#00d2ff;">--:--</div> 
-                <div style="font-size:0.8rem; color:#888;">
-                    <span id="i">0.0</span> A / <span id="pwr">0</span> W
-                </div>
+                <div style="font-size:0.8rem; color:#888;"><span id="i">0.0</span> A / <span id="pwr">0</span> W</div>
             </div>
         </div>
         
@@ -106,9 +93,7 @@
                 <div><span class="label">AVG</span><div id="c_avg" class="value-sm">--</div></div>
                 <div><span class="label">CYCLES</span><div id="cyc" class="value-sm" style="color:#ffcc00">--</div></div>
             </div>
-            <div style="margin-top:10px; font-size:0.8rem; color:#888;">
-                Delta: <span id="c_delta" style="color:#fff; font-weight:bold;">--</span> V
-            </div>
+            <div style="margin-top:10px; font-size:0.8rem; color:#888;">Delta: <span id="c_delta" style="color:#fff; font-weight:bold;">--</span> V</div>
         </div>
 
         <div class="card" style="margin-top:10px;">
@@ -121,26 +106,35 @@
     </div>
 
     <div id="configScreen" class="hidden">
-        <h1>PROVISIONING</h1>
+        <h1 style="font-size:1.5rem;">PROVISIONING</h1>
         
-        <label class="label" style="text-align:left">Target Battery (MAC)</label>
-        <select id="bmsList"><option>Scanning...</option></select>
+        <div class="section-box">
+            <h3 style="margin-top:0; color:#00d2ff; font-size:0.9rem;">1. BATTERY PAIRING</h3>
+            <label class="label" style="text-align:left">Target Battery (MAC)</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select id="bmsList" style="margin-bottom:0;"><option value="">Saved in Memory</option></select>
+            </div>
+            <button id="btnScan" style="margin-top:10px; padding:10px; background:#444; color:white;">🔍 SCAN FOR BATTERIES</button>
+        </div>
 
-        <label class="label" style="text-align:left">Device ID / Serial Number</label>
-        <input type="text" id="devid" placeholder="e.g. 1234567890">
+        <div class="section-box">
+            <h3 style="margin-top:0; color:#00d2ff; font-size:0.9rem;">2. CLOUD CONFIGURATION</h3>
+            <label class="label" style="text-align:left">Device ID / Serial Number</label>
+            <input type="text" id="devid" placeholder="e.g. 1234567890">
 
-        <label class="label" style="text-align:left">Flespi Token</label>
-        <input type="password" id="token">
+            <label class="label" style="text-align:left">Flespi Token</label>
+            <input type="password" id="token">
 
-        <label class="label" style="text-align:left">APN</label>
-        <input type="text" id="apn">
-        
-        <div style="background:#333; padding:10px; border-radius:6px; margin-bottom:15px;">
-            <p style="font-size:0.75rem; color:#aaa; margin:0 0 5px 0;">ADVANCED CLOUD SETTINGS</p>
-            <label class="label" style="text-align:left">MQTT Broker</label>
-            <input type="text" id="broker" placeholder="mqtt.flespi.io" style="margin-bottom:5px;">
-            <label class="label" style="text-align:left">MQTT Port</label>
-            <input type="number" id="port" placeholder="1883" style="margin-bottom:0;">
+            <label class="label" style="text-align:left">APN</label>
+            <input type="text" id="apn" style="margin-bottom:0;">
+            
+            <details style="margin-top:15px; font-size:0.8rem; color:#aaa;">
+                <summary style="cursor:pointer; margin-bottom:10px;">Advanced MQTT Settings</summary>
+                <label class="label" style="text-align:left; margin-top:5px;">Broker URL</label>
+                <input type="text" id="broker" placeholder="mqtt.flespi.io">
+                <label class="label" style="text-align:left">Port</label>
+                <input type="number" id="port" placeholder="1883">
+            </details>
         </div>
 
         <button id="btnSave" style="background:#00ff00; color:#000;">SAVE & REBOOT</button>
@@ -158,13 +152,11 @@
 
     let device, server, service, settingsChar, cmdChar;
 
-    // --- UI SWITCHER ---
     function showScreen(id) {
         ['connectScreen', 'dashboardScreen', 'configScreen'].forEach(s => document.getElementById(s).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
-    // --- CONNECT ---
     document.getElementById('btnConnect').addEventListener('click', async () => {
         try {
             document.getElementById('statusMsg').innerText = "Scanning...";
@@ -194,32 +186,20 @@
         }
     });
 
-    // --- FAST TELEMETRY (1s) ---
     function handleFast(e) {
         const clean = new TextDecoder().decode(e.target.value).replace(/\0/g, '').trim();
         try {
             const d = JSON.parse(clean);
-            
-            // 1. Update Connectivity Card
             if (d.net !== undefined) {
                 document.getElementById('lte_net').innerText = d.net;
                 document.getElementById('lte_rssi').innerText = "Sig: " + d.sig;
-                
                 const mqttEl = document.getElementById('mqtt_stat');
-                if (d.mqtt === 1) {
-                    mqttEl.innerText = "ONLINE ☁️";
-                    mqttEl.className = "badge-state st-chg";
-                } else {
-                    mqttEl.innerText = "OFFLINE ❌";
-                    mqttEl.className = "badge-state st-dsg";
-                }
+                if (d.mqtt === 1) { mqttEl.innerText = "ONLINE ☁️"; mqttEl.className = "badge-state st-chg"; } 
+                else { mqttEl.innerText = "OFFLINE ❌"; mqttEl.className = "badge-state st-dsg"; }
             }
-
-            // 2. Update Basic Vitals
             if(d.v !== undefined) document.getElementById('v').innerText = d.v.toFixed(1);
             if(d.soc !== undefined) document.getElementById('soc').innerText = d.soc;
             
-            // State Badge
             const stEl = document.getElementById('sysState');
             if (d.con === 1) {
                 if (d.i > 0.5) { stEl.innerText = "DISCHARGING 🔋"; stEl.className = "badge-state st-dsg"; }
@@ -229,16 +209,11 @@
                 stEl.innerText = "BMS DISCONNECTED"; stEl.className = "badge-state st-dsg";
             }
 
-            // 3. Autonomy Math (Run Time Predictor)
             if(d.i !== undefined && d.soc !== undefined && d.v !== undefined) {
                 document.getElementById('i').innerText = d.i.toFixed(1);
-                const pwr = (d.v * d.i).toFixed(0);
-                document.getElementById('pwr').innerText = pwr;
-
-                // Assuming a default 50Ah capacity for the math if not provided yet
+                document.getElementById('pwr').innerText = (d.v * d.i).toFixed(0);
                 const BATTERY_AH = 50; 
                 const remainingAh = BATTERY_AH * (d.soc / 100.0);
-
                 if (d.i > 0.5) { 
                     const hours = Math.floor(remainingAh / d.i);
                     const mins = Math.floor((remainingAh / d.i - hours) * 60);
@@ -249,88 +224,95 @@
                     document.getElementById('runtime').style.color = "#888";
                 }
             }
-
         } catch(err) { console.error(err); }
     }
 
-    // --- DETAIL TELEMETRY (4s) ---
     function handleDetail(e) {
         const clean = new TextDecoder().decode(e.target.value).replace(/\0/g, '').trim();
         try {
             const d = JSON.parse(clean);
-
             if(d.cyc !== undefined) document.getElementById('cyc').innerText = d.cyc;
-            
             if(d.al) {
                 const alDiv = document.getElementById('alarms');
                 let active = [];
-                if(d.al.ov) active.push("Cell Overvolt");
-                if(d.al.uv) active.push("Cell Undervolt");
-                if(d.al.sc) active.push("Short Circuit");
-                if(d.al.doc) active.push("Discharge Overcurrent");
-                if(d.al.cot) active.push("Charge Temp High");
-                if(d.al.cut) active.push("Charge Temp Low");
-                
-                if(active.length > 0) {
-                    alDiv.innerHTML = active.map(a => `<div class="alarm">${a}</div>`).join("");
-                } else {
-                    alDiv.innerHTML = "<span class='healthy'>System Healthy</span>";
-                }
+                if(d.al.ov) active.push("Cell Overvolt"); if(d.al.uv) active.push("Cell Undervolt");
+                if(d.al.sc) active.push("Short Circuit"); if(d.al.doc) active.push("Discharge Overcurrent");
+                if(d.al.cot) active.push("Charge Temp High"); if(d.al.cut) active.push("Charge Temp Low");
+                if(active.length > 0) alDiv.innerHTML = active.map(a => `<div class="alarm">${a}</div>`).join("");
+                else alDiv.innerHTML = "<span class='healthy'>System Healthy</span>";
             }
-
             if(d.cel) {
                 const cells = d.cel.split(',').filter(x => x).map(Number);
                 if(cells.length > 0) {
-                    const min = Math.min(...cells);
-                    const max = Math.max(...cells);
-                    const avg = cells.reduce((a,b) => a+b, 0) / cells.length;
-                    const delta = max - min;
-
+                    const min = Math.min(...cells); const max = Math.max(...cells);
                     document.getElementById('c_min').innerText = min.toFixed(3);
                     document.getElementById('c_max').innerText = max.toFixed(3);
-                    document.getElementById('c_avg').innerText = avg.toFixed(3);
-                    
-                    const deltaEl = document.getElementById('c_delta');
-                    deltaEl.innerText = delta.toFixed(3);
-                    if(delta > 0.100) deltaEl.style.color = "#ff4444"; else deltaEl.style.color = "#00d2ff";
+                    document.getElementById('c_avg').innerText = (cells.reduce((a,b) => a+b, 0) / cells.length).toFixed(3);
+                    const delta = max - min;
+                    document.getElementById('c_delta').innerText = delta.toFixed(3);
+                    document.getElementById('c_delta').style.color = delta > 0.100 ? "#ff4444" : "#00d2ff";
                 }
             }
-        } catch(err) { console.error(err); }
+        } catch(err) {}
     }
 
-    // --- SETTINGS / PROVISIONING ---
+    // --- NEW: Open Settings WITHOUT Scanning ---
     document.getElementById('btnSettings').addEventListener('click', async () => {
         showScreen('configScreen');
         
-        // Request new scan
+        // Just read the current settings from memory immediately
+        const setVal = await settingsChar.readValue();
+        const setJson = JSON.parse(new TextDecoder().decode(setVal).replace(/\0/g, '').trim());
+        
+        document.getElementById('apn').value = setJson.apn || "";
+        document.getElementById('token').value = setJson.token || "";
+        document.getElementById('devid').value = setJson.devid || "";
+        document.getElementById('broker').value = setJson.broker || "mqtt.flespi.io";
+        document.getElementById('port').value = setJson.port || 1883;
+        
+        // Populate the dropdown with the currently saved MAC so it doesn't look empty
+        const sel = document.getElementById('bmsList');
+        if (setJson.mac) {
+            sel.innerHTML = `<option value="${setJson.mac}">SAVED: ${setJson.mac}</option>`;
+        }
+    });
+
+    // --- NEW: Explicit Scan Button ---
+    document.getElementById('btnScan').addEventListener('click', async () => {
+        const btn = document.getElementById('btnScan');
+        const sel = document.getElementById('bmsList');
+        
+        btn.innerText = "⏳ SCANNING (Wait 6s)...";
+        btn.disabled = true;
+        sel.innerHTML = "<option>Scanning environment...</option>";
+
+        // Send scan command to ESP32
         await cmdChar.writeValue(new TextEncoder().encode("SCAN"));
         
+        // ESP32 takes 5 seconds. We wait 6 seconds to be safe.
         setTimeout(async () => {
-            const scanChar = await service.getCharacteristic(CHAR_SCAN);
-            const scanVal = await scanChar.readValue();
-            const clean = new TextDecoder().decode(scanVal).replace(/\0/g, '').trim();
-            const devices = JSON.parse(clean);
-            const sel = document.getElementById('bmsList');
-            sel.innerHTML = "<option value=''>Select Battery...</option>";
-            devices.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.mac; opt.text = `${d.name} (${d.rssi})`;
-                sel.add(opt);
-            });
-            
-            // Load existing settings
-            const setVal = await settingsChar.readValue();
-            const setJson = JSON.parse(new TextDecoder().decode(setVal).replace(/\0/g, '').trim());
-            document.getElementById('apn').value = setJson.apn || "";
-            document.getElementById('token').value = setJson.token || "";
-            document.getElementById('bmsList').value = setJson.mac || "";
-            
-            // NEW Dynamic Provisioning Fields
-            document.getElementById('devid').value = setJson.devid || "";
-            document.getElementById('broker').value = setJson.broker || "mqtt.flespi.io";
-            document.getElementById('port').value = setJson.port || 1883;
-
-        }, 2500);
+            try {
+                const scanChar = await service.getCharacteristic(CHAR_SCAN);
+                const scanVal = await scanChar.readValue();
+                const clean = new TextDecoder().decode(scanVal).replace(/\0/g, '').trim();
+                const devices = JSON.parse(clean);
+                
+                sel.innerHTML = "<option value=''>Select Battery...</option>";
+                if (devices.length === 0) {
+                    sel.innerHTML = "<option value=''>No batteries found!</option>";
+                } else {
+                    devices.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.mac; opt.text = `${d.name} (${d.rssi} dBm)`;
+                        sel.add(opt);
+                    });
+                }
+            } catch(e) {
+                sel.innerHTML = "<option value=''>Error reading scan</option>";
+            }
+            btn.innerText = "🔍 SCAN FOR BATTERIES";
+            btn.disabled = false;
+        }, 6000); // Wait 6000ms!
     });
 
     document.getElementById('btnBack').addEventListener('click', () => showScreen('dashboardScreen'));
@@ -339,15 +321,21 @@
         const data = {
             apn: document.getElementById('apn').value,
             token: document.getElementById('token').value,
-            mac: document.getElementById('bmsList').value,
             devid: document.getElementById('devid').value,
             broker: document.getElementById('broker').value,
             port: parseInt(document.getElementById('port').value)
         };
+        
+        // Only save MAC if the user actually selected a new one from the dropdown
+        const selectedMac = document.getElementById('bmsList').value;
+        if (selectedMac && !selectedMac.startsWith("SAVED")) {
+            data.mac = selectedMac;
+        }
+
         try {
             await settingsChar.writeValue(new TextEncoder().encode(JSON.stringify(data)));
             await cmdChar.writeValue(new TextEncoder().encode("REBOOT"));
-            alert("Settings saved! TREVOR is rebooting to apply new configuration.");
+            alert("Settings saved! TREVOR is rebooting.");
             location.reload();
         } catch(e) { alert("Error: " + e.message); }
     });
